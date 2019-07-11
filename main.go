@@ -33,7 +33,7 @@ func baner() {
 }
 
 type JsonRecord struct {
-	commands []string
+	commands map[string]string
 }
 
 func JsonDecode(r io.Reader) (x *JsonRecord, err error) {
@@ -67,15 +67,16 @@ func execute(command string, args string) string {
 
 func pwbsMain(args []string) {
 	JsonData := readJson("pwbs.json")
-	for i := 0; i < len(args); i++ {
-		baner := fmt.Sprintf(`Executing task "%v" ...`, args[i])
+	for _, arg := range args {
+		baner := fmt.Sprintf(`Executing task "%v" ...`, arg)
 		fmt.Println(baner)
-		command := JsonData.commands[args[i]]
+		fmt.Printf("T: %v \n", JsonData.commands)
+		command := JsonData.commands[arg]
 		c := strings.SplitN(command, " ", 2)
-		cmd, args := c[0], c[1]
-		output := execute(cmd, args)
+		cmd, arguments := c[0], c[1]
+		output := execute(cmd, arguments)
 		fmt.Println(output)
-		baner = fmt.Sprintf(`Finished task "%v" ...`, args[i])
+		baner = fmt.Sprintf(`Finished task "%v" ...`, arg)
 		fmt.Println(baner)
 	}
 }
