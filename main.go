@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -16,7 +16,7 @@ type PwbsInfo struct {
 }
 
 var pwbs PwbsInfo = PwbsInfo{
-	version:      "0.9.1.0",
+	version:      "0.9.1.1",
 	edition:      "E1 GoLang",
 	versionArray: [4]int{0, 9, 1, 0},
 }
@@ -32,28 +32,23 @@ func baner() {
 	fmt.Println(baner)
 }
 
-type JsonRecord struct {
-	commands map[string]string
+type PWBSConfigFile struct {
+	Commands map[string]string `json:"commands"`
 }
 
-func JsonDecode(r io.Reader) (x *JsonRecord, err error) {
-	x = new(JsonRecord)
-	if err = json.NewDecoder(r).Decode(x); err != nil {
-		return
-	}
-	return
-}
-
-func readJson(filename string) *JsonRecord {
-	file, err := os.Open(filename)
+func readJson(filename string) PWBSConfigFile {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil
+		fmt.Println("Error in reading File", err)
+		return PWBSConfigFile{Commands: map[string]string{}}
 	}
-	data, jsonErr := JsonDecode(file)
+	jsonData := PWBSConfigFile{}
+	jsonErr := json.Unmarshal(data, &jsonData)
 	if jsonErr != nil {
-		return nil
+		fmt.Println("Error in parsing JSON", jsonErr)
+		return PWBSConfigFile{Commands: map[string]string{}}
 	}
-	return data
+	return jsonData
 }
 
 func execute(command string, args string) string {
@@ -70,8 +65,7 @@ func pwbsMain(args []string) {
 	for _, arg := range args {
 		baner := fmt.Sprintf(`Executing task "%v" ...`, arg)
 		fmt.Println(baner)
-		fmt.Printf("T: %v \n", JsonData.commands)
-		command := JsonData.commands[arg]
+		command := JsonData.Commands[arg]
 		c := strings.SplitN(command, " ", 2)
 		cmd, arguments := c[0], c[1]
 		output := execute(cmd, arguments)
