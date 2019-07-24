@@ -1,0 +1,1 @@
+When you unmarshal json to empty interface where json is array of something. Then to get to the type of item you have to go through type switch with slice of empty interface.
